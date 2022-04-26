@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import {
   getAuth,
   signInWithEmailAndPassword,
@@ -25,5 +26,31 @@ provider.setCustomParameters({
   prompt: 'select_account',
 });
 
+//* Sign in with Google
 export const signInWithGooglePopup = () => signInWithPopup(auth, provider);
 export const auth = getAuth(app);
+
+const db = getFirestore(app);
+
+//* Adding user to firestore
+export const createUserDocumentFromAuth = async (authUser) => {
+  const userDocRef = doc(db, 'users', authUser.uid);
+  const userSnapshot = await getDoc(userDocRef);
+  if (!userSnapshot.exists()) {
+    const { displayName, email } = authUser;
+    const createdAt = new Date();
+
+    try {
+      await setDoc(userDocRef, {
+        displayName,
+        email,
+        createdAt,
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+  return userDocRef;
+};
+
+export default db;
