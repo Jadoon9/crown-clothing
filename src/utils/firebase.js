@@ -1,14 +1,14 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 import {
+  createUserWithEmailAndPassword,
   getAuth,
-  signInWithEmailAndPassword,
+  GoogleAuthProvider,
   signInWithPopup,
   signInWithRedirect,
-  GoogleAuthProvider,
 } from 'firebase/auth';
 
-// Your web app's Firebase configuration
+// *Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: 'AIzaSyC8RZrq3PtlXneqxOwliBzqXihOJlduIfQ',
   authDomain: 'crwn-clothing-5b1a5.firebaseapp.com',
@@ -18,39 +18,51 @@ const firebaseConfig = {
   appId: '1:302751077615:web:95d0d1ed29b4f8806fb71a',
 };
 
-// Initialize Firebase
+//* Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const provider = new GoogleAuthProvider();
+export const auth = getAuth(app);
+const db = getFirestore(app);
 
-provider.setCustomParameters({
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
   prompt: 'select_account',
 });
 
-//* Sign in with Google
-export const signInWithGooglePopup = () => signInWithPopup(auth, provider);
-export const auth = getAuth(app);
+// * Sign in with google
+export const signInWithGooglePopup = () =>
+  signInWithPopup(auth, googleProvider);
 
-const db = getFirestore(app);
-
-//* Adding user to firestore
-export const createUserDocumentFromAuth = async (authUser) => {
-  const userDocRef = doc(db, 'users', authUser.uid);
+//* save the user to fireStore
+export const createUserDocumentFromAuth = async (user, additionalInfo = {}) => {
+  const userDocRef = doc(db, 'users', user.uid);
   const userSnapshot = await getDoc(userDocRef);
-  if (!userSnapshot.exists()) {
-    const { displayName, email } = authUser;
-    const createdAt = new Date();
 
+  if (!userSnapshot.exists()) {
+    const { displayName, email } = user;
+    const createdAt = new Date();
     try {
       await setDoc(userDocRef, {
         displayName,
         email,
         createdAt,
+        ...additionalInfo,
       });
     } catch (error) {
       console.log(error.message);
     }
   }
   return userDocRef;
+};
+
+// * Sign in with Redirect
+export const signInWithGoogleRedirect = () => {
+  signInWithRedirect(auth, googleProvider);
+};
+
+// * Sign in with email
+export const signUpWithEmail = async (email, password) => {
+  const { user } = await createUserWithEmailAndPassword(auth, email, password);
+  return user;
 };
 
 export default db;
