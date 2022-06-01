@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router';
+
 import Home from './routes/home/Home';
 import Navigation from './components/navigation/Navigation';
 import './categories.scss';

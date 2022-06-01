@@ -7,6 +7,8 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signInWithRedirect,
+  signOut,
+  onAuthStateChanged,
 } from 'firebase/auth';
 
 // *Your web app's Firebase configuration
@@ -24,6 +26,7 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 const db = getFirestore(app);
 
+// * Google Provider
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account',
@@ -32,6 +35,11 @@ googleProvider.setCustomParameters({
 // * Sign in with google
 export const signInWithGooglePopup = () =>
   signInWithPopup(auth, googleProvider);
+
+// * Observer Pattern/ Getting current logged in user
+export const getCurrentUser = (callback) => {
+  onAuthStateChanged(auth, callback);
+};
 
 //* save the user to fireStore
 export const createUserDocumentFromAuth = async (user, additionalInfo = {}) => {
@@ -69,7 +77,13 @@ export const signUpWithEmail = async (email, password) => {
 export const signInWithEmail = async (email, password) => {
   if (!email || !password) return;
   const { user } = await signInWithEmailAndPassword(auth, email, password);
+
   return user;
+};
+
+// * Sign Out
+export const signOutUser = async () => {
+  await signOut(auth);
 };
 
 export default db;
